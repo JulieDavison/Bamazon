@@ -21,7 +21,9 @@ connection.connect(function(err) {
   console.log("connected as id " + connection.threadId);
  // connection.end();
 });
-
+start();
+//
+function start(){
 connection.query('SELECT * FROM `products`', function (error, results, fields) {
     // error will be an Error if one occurred during the query
     // results will contain the results of the query
@@ -40,12 +42,48 @@ connection.query('SELECT * FROM `products`', function (error, results, fields) {
             type: 'number',
             name:'itemId',
             message:"What is the Id of the item you want to purchase?"
-        }
+        },
+        {
+          type: 'number',
+          name:'itemQty',
+          message:"What is the quantity of the item you want to purchase?"
+      }
       ])
       .then(answers => {
-        console.log(answers);
 
         //Query database for one product 
+        connection.query('SELECT * FROM `products` WHERE item_id=?', [answers.itemId], function (error, results, fields) {
+          if(error) throw error;
+          if (results.length > 0){
+            //we know we have a valid product and it should be only object in array AKA results[0]
+            var item  = results.pop();
+            if(item.stock_quantity >= answers.itemQty){
+              //We do ahve a valid qty to sell to user
+              var newQty = item.stock_quantity - answers.itemQty
+              connection.query('UPDATE `products` SET stock_quantity=? WHERE item_id=?', [newQty, item.item_id], function (error, results, fields) {
+                if(error) throw error;
+                console.log("The amount for these items is " + answers.itemQty * item.price)
+                start();
+              })
+            }
+            else {
+              //there is not enough stock qty to fulfill the request
+              console.log("There isn't enough quantity to sell that much.");
+              setTimeout(function(){
+
+                start();
+              }, 2000);
+            }
+          }
+          else {
+            //user entered an invalid ID and we should let them know that
+            console.log("The product is not in the database.");
+            setTimeout(function(){
+
+              start();
+            }, 2000);
+          }
+        });
         //Verify we have enough QTY
         //Update DB to represent a sale
         //Respond to user with full cost
@@ -54,3 +92,5 @@ connection.query('SELECT * FROM `products`', function (error, results, fields) {
         //Let user know not enough QTY
       });
   });
+}
+  //
