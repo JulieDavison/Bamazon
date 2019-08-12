@@ -62,8 +62,12 @@ connection.query('SELECT * FROM `products`', function (error, results, fields) {
               var newQty = item.stock_quantity - answers.itemQty
               connection.query('UPDATE `products` SET stock_quantity=? WHERE item_id=?', [newQty, item.item_id], function (error, results, fields) {
                 if(error) throw error;
-                console.log("The amount for these items is " + answers.itemQty * item.price)
-                start();
+                console.log("The amount for these items is $" + answers.itemQty * item.price)
+                setTimeout(function(){
+
+                  start();
+                }, 4000);
+              
               })
             }
             else {
@@ -72,7 +76,7 @@ connection.query('SELECT * FROM `products`', function (error, results, fields) {
               setTimeout(function(){
 
                 start();
-              }, 2000);
+              }, 4000);
             }
           }
           else {
@@ -81,7 +85,7 @@ connection.query('SELECT * FROM `products`', function (error, results, fields) {
             setTimeout(function(){
 
               start();
-            }, 2000);
+            }, 4000);
           }
         });
         //Verify we have enough QTY
